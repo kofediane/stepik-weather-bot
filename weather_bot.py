@@ -9,7 +9,8 @@ import redis
 
 
 api_key = 'https://stepik.akentev.com/api/weather'
-token = '1426279811:AAHp669I2dr-8V-5PBivmqibb5bdVrKgeLk'
+token = os.environ['bot_token']
+# 1426279811:AAHp669I2dr-8V-5PBivmqibb5bdVrKgeLk
 bot = telebot.TeleBot(token)
 
 redis_url = os.environ.get('REDIS_URL')
