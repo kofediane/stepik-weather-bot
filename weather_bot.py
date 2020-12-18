@@ -3,13 +3,18 @@ from datetime import date, timedelta
 import requests
 import json
 import types
+import os
+import redis
+
 
 
 api_key = 'https://stepik.akentev.com/api/weather'
 token = '1426279811:AAHp669I2dr-8V-5PBivmqibb5bdVrKgeLk'
 bot = telebot.TeleBot(token)
 
-try:
+redis_url = os.environ.get('REDIS_URL')
+if redis_url is None:
+    try:
     data = json.load(open('data.json', 'r', encoding = 'utf-8'))
 except FileNotFoundError:
     data = {
@@ -21,6 +26,23 @@ except FileNotFoundError:
         WEATHER_DATE_STATE: {
         },
     }
+else:
+    redis_db = redis.from_url(redis_url)
+    raw_data = redis_db.get('data')
+    if raw_data is None:
+data = {
+        'states': {},
+        MAIN_STATE: {
+        },
+        CITY_STATE: {
+        },
+        WEATHER_DATE_STATE: {
+        },
+    }
+else:
+data = json.loads(raw_data)
+
+
 
 MAIN_STATE = 'main'
 WEATHER_DATE_STATE = 'weather_date_handler'
@@ -29,12 +51,16 @@ CITY_STATE = 'city'
 
 def change_data(key, user_id, value):
     data[key][user_id] = value
+    if redis_url is None:
     json.dump(
         data,
         open('data.json', 'w', encoding='utf-8'),
         indent=2,
         ensure_ascii=False,
     )
+    else:
+    redis_db = redis.from_url(redis_url)
+    redis_db.set('data', json.dumps(data))
 
 
 @bot.message_handler(func = lambda message: True)
